@@ -1,0 +1,7 @@
+{
+  "file": "sample/d2/p1.txt",
+  "type": "snapshot",
+  "action": "write",
+  "isBlobType": true,
+  "timestamp": "2025-10-11T15:15:49.438611897+05:30"
+}

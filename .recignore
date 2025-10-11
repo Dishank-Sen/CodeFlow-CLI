@@ -1,0 +1,10 @@
+.rec/
+cmd/
+internal/
+tmp/
+.env
+.recignore
+go.mod
+go.sum
+main.go
+.air.toml

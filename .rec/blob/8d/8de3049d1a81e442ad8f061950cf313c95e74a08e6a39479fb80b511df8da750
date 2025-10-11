@@ -1,0 +1,20 @@
+[
+  {
+    "FilePath": "sample/d2/p1.txt",
+    "LineNumber": 0,
+    "Type": "replace",
+    "Content": [
+      "hello world I am Dishank"
+    ],
+    "CharDiff": [
+      {
+        "Type": "Equal",
+        "Text": "hello"
+      },
+      {
+        "Type": "Insert",
+        "Text": " world I am Dishank"
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "FilePath": "sample/d2/p1.txt",
+    "LineNumber": 1,
+    "Type": "replace",
+    "Content": [
+      "I am making a nice project"
+    ],
+    "CharDiff": [
+      {
+        "Type": "Insert",
+        "Text": "I am making a nice project"
+      }
+    ]
+  }
+]
