@@ -1,0 +1,8 @@
+{
+  "file": "sample/d1/t2.txt",
+  "type": "delta",
+  "action": "write",
+  "blob": ".rec/blob/48/48f566e800c93e425cb3c264227d2519d8d55afd13f628fa712c058d67b2855a",
+  "isBlobType": true,
+  "timestamp": "2025-10-13T12:16:50.343160094+05:30"
+}

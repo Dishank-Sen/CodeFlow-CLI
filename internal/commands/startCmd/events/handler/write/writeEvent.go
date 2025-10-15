@@ -1,9 +1,7 @@
 package write
 
 import (
-	"encoding/json"
 	"exp1/internal/commands/startCmd/interfaces"
-	diffalgo "exp1/internal/diffAlgo"
 	"exp1/internal/recorder/blob"
 	"exp1/internal/recorder/history"
 	"exp1/internal/types"
@@ -15,6 +13,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 type Write struct {
@@ -23,15 +22,17 @@ type Write struct {
 	State   map[string]types.FileRecord
 	History *history.History
 	Blob    *blob.Blob
+	Unsaved map[string]bool
 }
 
-func NewWrite(event fsnotify.Event, watcher interfaces.IWatcher, state map[string]types.FileRecord) *Write {
+func NewWrite(event fsnotify.Event, watcher interfaces.IWatcher, state map[string]types.FileRecord, unsaved map[string]bool) *Write {
 	return &Write{
 		Event:   event,
 		Watcher: watcher,
 		History: history.NewHistory(),
 		State:   state,
 		Blob:    blob.NewBlob(),
+		Unsaved: unsaved,
 	}
 }
 
@@ -41,7 +42,7 @@ func (w *Write) WriteTriggered() {
 
 	info, err := os.Stat(path)
 	if err != nil {
-		log.Printf("⚠️ Failed to stat file: %v\n", err)
+		log.Printf("Failed to stat file (writeEvent.go): %v\n", err)
 		return
 	}
 	size := info.Size()
@@ -49,7 +50,7 @@ func (w *Write) WriteTriggered() {
 	// Read new content
 	newContentBytes, err := os.ReadFile(path)
 	if err != nil {
-		log.Printf("⚠️ Failed to read file content: %v\n", err)
+		log.Printf("Failed to read file content: %v\n", err)
 		return
 	}
 	newContent := string(newContentBytes)
@@ -59,6 +60,9 @@ func (w *Write) WriteTriggered() {
 	// ===== Case 1: First time seeing this file =====
 	if !exists {
 		fmt.Println("🆕 New file detected, creating snapshot record")
+
+		// getting blob path
+		blobPath := w.Blob.CreateBlobFromPath(path)
 
 		data := types.FileRecord{
 			File:                path,
@@ -77,6 +81,7 @@ func (w *Write) WriteTriggered() {
 			Type: "snapshot",
 			Action: "write",
 			IsBlobType: true,
+			Blob: blobPath,
 			Timestamp: time.Now(),
 		}
 		err := w.History.Create(path, historyData)
@@ -85,77 +90,97 @@ func (w *Write) WriteTriggered() {
 			log.Fatal("writeEvent:",err)
 		}
 		fmt.Println("history created for write snpashot!")
+		
+		w.Unsaved[path] = false
 
 		return
 	}
 
-	// ===== Case 2: File already tracked =====
+	// if file already tracked
 	record.CurrentSize = size
-	fmt.Println("📏 Current size:", record.CurrentSize)
-	fmt.Println("📏 Previous size:", record.PrevSize)
+	fmt.Println("Current size:", record.CurrentSize)
+	fmt.Println("Previous size:", record.PrevSize)
 
 	threshold, err := strconv.Atoi(os.Getenv("CODE_THRESHOLD"))
 	if err != nil {
-		log.Fatal("❌ Invalid CODE_THRESHOLD:", err)
+		log.Fatal("Invalid CODE_THRESHOLD:", err)
 	}
 
 	// Only compute diff if file changed significantly
 	if math.Abs(float64(record.CurrentSize)-float64(record.PrevSize)) > float64(threshold) {
-		fmt.Println("⚡ Significant change detected!")
+		fmt.Println("Significant change detected!")
 
-		oldContent := record.PreviousFileContent
-
-		// Compute delta between old and new versions
-		delta := diffalgo.ComputeDelta(record.File, record.File, oldContent, newContent)
-
-		// Print delta in readable format
-		fmt.Println("===== Delta =====")
-		for _, d := range delta {
-			fmt.Printf("File: %s | Line: %d | Type: %s | Content: %v\n",
-				d.FilePath, d.LineNumber, d.Type, d.Content)
-			for _, c := range d.CharDiff {
-				fmt.Printf("    CharDiff: %s -> %q\n", c.Type, c.Text)
-			}
+		currentContentByte, err := os.ReadFile(path)
+		if err != nil{
+			log.Fatal("error reading file (writeFile.go):",err)
 		}
 
-		// Convert delta to JSON string
-		deltaBytes, err := json.MarshalIndent(delta, "", "  ")
-		if err != nil {
-			fmt.Println("❌ Error serializing delta:", err)
-			return
-		}
+		currentContent := string(currentContentByte)
+		previousContent := record.PreviousFileContent
 
-		// Save diff as blob (timestamped blob file)
-		deltaJSON := string(deltaBytes)
-		blobPath := w.Blob.CreateBlobFromContent(deltaJSON)
-		fmt.Println("✅ Delta blob created at:", blobPath)
+		// create patch
+		dmp := diffmatchpatch.New()
+		patch := dmp.PatchMake(previousContent, currentContent)
 
-		// save to history
-		data := types.FileRecord{
+		// save patch as blob
+		patchText := dmp.PatchToText(patch)
+		blobPath := w.Blob.CreateBlobFromContent(patchText)
+
+		// save history
+		historyData := types.FileRecord{
 			File: path,
 			Type: "delta",
 			Action: "write",
-			Blob: blobPath,
 			IsBlobType: true,
+			Blob: blobPath,
 			Timestamp: time.Now(),
 		}
 
-		err = w.History.Create(path, data)
+		err = w.History.Create(path, historyData)
+
 		if err != nil{
 			log.Fatal("writeEvent:",err)
 		}
 		fmt.Println("history created for write delta!")
 
-		// Update file record
-		record.PrevSize = record.CurrentSize
-		record.PreviousFileContent = newContent
-		record.Timestamp = time.Now()
-
-		// Save updated state
+		record.CurrentSize = size
+		record.PrevSize = size
+		record.PreviousFileContent = currentContent
 		w.State[path] = record
-		fmt.Println("💾 File record updated")
+		w.Unsaved[path] = false
 
+		return
 	} else {
-		fmt.Println("ℹ️ No significant change detected")
+		fmt.Println("No significant change detected")
+		w.Unsaved[path] = true
+		return
+	}
+}
+
+func (w *Write) Flush(){
+	// save snapshot file for every unsaved changes
+	var unsavedFiles []string
+	for key, value := range w.Unsaved{
+		if value{
+			unsavedFiles = append(unsavedFiles, key)
+		}
+	}
+
+	for _, path := range unsavedFiles{
+		blobPath := w.Blob.CreateBlobFromPath(path)
+
+		historyData := types.FileRecord{
+			File: path,
+			Type: "snapshot",
+			Action: "write",
+			IsBlobType: true,
+			Blob: blobPath,
+			Timestamp: time.Now(),
+		}
+		err := w.History.Create(path, historyData)
+
+		if err != nil{
+			log.Fatal("error while flushing the file (writeEvent.go):",err)
+		}
 	}
 }

@@ -14,27 +14,37 @@ type Set struct {
 }
 
 func NewSetCmd(use, short string) *Set {
-	return &Set{
+	s := &Set{
 		SetCmd: &cobra.Command{
 			Use:   use,
 			Short: short,
+			Run:   nil, // we'll set below
 		},
 	}
+
+	// Define flags
+	s.SetCmd.Flags().String("username", "", "Git username")
+	s.SetCmd.Flags().String("reponame", "", "Repository name")
+	s.SetCmd.Flags().String("remoteUrl", "", "Remote repository URL")
+
+	// Assign run function
+	s.SetCmd.Run = s.Run
+
+	return s
 }
 
 func (s *Set) Run(cmd *cobra.Command, args []string) {
-	if len(args) < 1 {
-		fmt.Println("Error: Please provide a URL.\nUsage: rec set <url>")
-		return
-	}
+	// Read flag values
+	userName, _ := cmd.Flags().GetString("username")
+	repoName, _ := cmd.Flags().GetString("reponame")
+	remoteUrl, _ := cmd.Flags().GetString("remoteUrl")
 
-	url := args[0]
 	configPath := filepath.Join(".rec", "config.json")
 
 	// Ensure .rec directory exists
 	if _, err := os.Stat(".rec"); os.IsNotExist(err) {
 		if err := os.Mkdir(".rec", 0755); err != nil {
-			fmt.Println("Failed to create .rec directory:", err)
+			fmt.Println("❌ Failed to create .rec directory:", err)
 			return
 		}
 	}
@@ -43,32 +53,41 @@ func (s *Set) Run(cmd *cobra.Command, args []string) {
 	config := make(map[string]interface{})
 	if _, err := os.Stat(configPath); err == nil {
 		data, err := os.ReadFile(configPath)
-		if err != nil {
-			fmt.Println("Error reading config.json:", err)
-			return
+		if err == nil {
+			json.Unmarshal(data, &config)
 		}
-		json.Unmarshal(data, &config)
 	}
 
-	// Update repository section
-	repo, ok := config["repository"].(map[string]interface{})
-	if !ok {
-		repo = make(map[string]interface{})
+	// Update only provided fields
+	if userName != "" {
+		config["userName"] = userName
 	}
-	repo["remote"] = url
-	config["repository"] = repo
+	if repoName != "" {
+		config["repoName"] = repoName
+	}
+	if remoteUrl != "" {
+		config["remoteUrl"] = remoteUrl
+	}
 
-	// Write back to file
+	// Write back to config.json
 	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		fmt.Println("Error encoding config:", err)
+		fmt.Println("❌ Error encoding config:", err)
 		return
 	}
 	if err := os.WriteFile(configPath, data, 0644); err != nil {
-		fmt.Println("Error writing config.json:", err)
+		fmt.Println("❌ Error writing config.json:", err)
 		return
 	}
 
-	fmt.Println("✅ Remote URL set successfully!")
-	fmt.Println("→", url)
+	fmt.Println("✅ Repository configuration updated successfully!")
+	if userName != "" {
+		fmt.Println("→ userName:", userName)
+	}
+	if repoName != "" {
+		fmt.Println("→ repoName:", repoName)
+	}
+	if remoteUrl != "" {
+		fmt.Println("→ remoteUrl:", remoteUrl)
+	}
 }

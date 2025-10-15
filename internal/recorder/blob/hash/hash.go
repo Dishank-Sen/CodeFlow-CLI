@@ -25,6 +25,9 @@ func (h *Hash) HashFile(path string) (string, error) {
     }
     defer file.Close()
 
+    // reset previous state
+    h.hasher.Reset()
+
     if _, err := io.Copy(h.hasher, file); err != nil {
         return "", err
     }

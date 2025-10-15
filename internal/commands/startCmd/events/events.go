@@ -18,6 +18,7 @@ type Events struct{
 	watcher interfaces.IWatcher
 	debouncer *debounce.Debouncer
 	State map[string]types.FileRecord
+	Unsaved map[string]bool
 }
 
 func NewEvents(w interfaces.IWatcher) *Events{
@@ -25,6 +26,7 @@ func NewEvents(w interfaces.IWatcher) *Events{
 		watcher: w,
 		debouncer: debounce.NewDebouncer(),
 		State: make(map[string]types.FileRecord),
+		Unsaved: make(map[string]bool),
 	}
 }
 
@@ -51,7 +53,7 @@ func (e *Events) Write(event fsnotify.Event){
 
 	// Debounce per file path
 	e.debouncer.Debounce(path, 2*time.Second, func() {
-		writeHandler := write.NewWrite(event, e.watcher, e.State)
+		writeHandler := write.NewWrite(event, e.watcher, e.State, e.Unsaved)
 		writeHandler.WriteTriggered()
 	})
 }
@@ -59,4 +61,10 @@ func (e *Events) Write(event fsnotify.Event){
 func (e *Events) Chmod(event fsnotify.Event){
 	chmod := chmod.NewChmod(event, e.watcher)
 	chmod.ChmodTriggered()
+}
+
+func (e *Events) Flush(){
+	event := fsnotify.Event{}  // empty event
+	writeHandler := write.NewWrite(event, e.watcher, e.State, e.Unsaved)
+	writeHandler.Flush()
 }

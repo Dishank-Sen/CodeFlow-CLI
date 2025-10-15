@@ -1,8 +1,0 @@
-{
-  "file": "sample/d2/p1.txt",
-  "type": "delta",
-  "action": "write",
-  "blob": ".rec/blob/df/dfb3419a8d179fe00ff755bfdeefcf17e0edf5bf42b1804d16a98bca6acc1bb2",
-  "isBlobType": true,
-  "timestamp": "2025-10-11T15:17:19.761553907+05:30"
-}
