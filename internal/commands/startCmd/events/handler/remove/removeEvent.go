@@ -3,6 +3,7 @@ package remove
 import (
 	"exp1/internal/commands/startCmd/interfaces"
 	"exp1/internal/recorder/history"
+	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
 	"fmt"
 	"log"
@@ -41,33 +42,12 @@ func (r *Remove) RemoveTriggered(){
 	var data = types.FileRecord{
 		File: path,
 		Action: "remove",
-		IsBlobType: false,
 		Timestamp: time.Now(),
 	}
 
 	// add file to .rec/history
-	err = r.History.Create(path, data)
+	err = roottimeline.Save(data)
 	if err != nil{
 		log.Fatal("removeEvent: ",err)
 	}
 }
-
-// func (h *Handler) Remove(event fsnotify.Event) {
-//     fmt.Println("remove event triggered")
-
-//     path := event.Name
-
-//     // Check if we had it in state (to know if it was file or dir)
-//     if _, exists := h.State[path]; exists {
-//         fmt.Println("file deleted:", path)
-//         delete(h.State, path)
-
-//         // record in history
-//         err := h.Manager.FileRemoveSnapshot(path)
-//         if err != nil {
-//             fmt.Println("error recording remove snapshot:", err)
-//         }
-//     } else {
-//         fmt.Println("removed unknown path (maybe dir):", path)
-//     }
-// }

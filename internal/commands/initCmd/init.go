@@ -60,6 +60,7 @@ func (i *Init) getFolders(rootFolder string) []string{
         filepath.Join(rootFolder, "history"),
         filepath.Join(rootFolder, "index"),
         filepath.Join(rootFolder, "files"),
+		filepath.Join(rootFolder, "root-timeline"),
     }
 }
 

@@ -41,6 +41,8 @@ func (w *Watch) Start(){
 	w.eventLoop()
 }
 
+// this removes all files mentioned in .recignore
+
 func (w *Watch) filterFiles(root string) error {
     ignoredPatterns := w.getIgnoredFiles()
 
@@ -101,6 +103,8 @@ func (w *Watch) matchesIgnore(path string, patterns []string) bool {
 	return false
 }
 
+// add a dir to be watched
+
 func (w *Watch) AddDirToWatcher(path string, info os.FileInfo) error{
 	// Add directories to watcher
 	if info.IsDir() {
@@ -109,6 +113,8 @@ func (w *Watch) AddDirToWatcher(path string, info os.FileInfo) error{
 	}
 	return nil
 }
+
+// this loop runs forever until termination
 
 func (w *Watch) eventLoop(){
 	for {

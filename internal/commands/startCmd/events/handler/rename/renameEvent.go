@@ -3,6 +3,7 @@ package rename
 import (
 	"exp1/internal/commands/startCmd/interfaces"
 	"exp1/internal/recorder/history"
+	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
 	"fmt"
 	"log"
@@ -43,12 +44,11 @@ func (r *Rename) RenameTriggered(){
 	var data = types.FileRecord{
 		File: path,
 		Action: "rename",
-		IsBlobType: false,
 		Timestamp: time.Now(),
 	}
 
 	// add file to .rec/history
-	err = r.History.Create(path, data)
+	err = roottimeline.Save(data)
 	if err != nil{
 		log.Fatal("removeEvent: ",err)
 	}

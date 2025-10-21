@@ -3,6 +3,7 @@ package create
 import (
 	"exp1/internal/commands/startCmd/interfaces"
 	"exp1/internal/recorder/history"
+	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
 	"fmt"
 	"log"
@@ -42,14 +43,12 @@ func (c *Create) CreateTriggered(){
 
 	var data = types.FileRecord{
 		File: path,
-		Type: "snapshot",
 		Action: "create",
-		IsBlobType: false,
 		Timestamp: time.Now(),
 	}
 
-	// add file to .rec/history
-	err = c.History.Create(path, data)
+	// add file to .rec/root-timeline
+	err = roottimeline.Save(data)
 	if err != nil{
 		log.Fatal("createEvent: ",err)
 	}
