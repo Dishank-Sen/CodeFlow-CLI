@@ -9,31 +9,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Set struct {
-	SetCmd *cobra.Command
-}
-
-func NewSetCmd(use, short string) *Set {
-	s := &Set{
-		SetCmd: &cobra.Command{
-			Use:   use,
-			Short: short,
-			Run:   nil, // we'll set below
-		},
+func NewSetCmd(use, short string) *cobra.Command{
+	SetCmd := &cobra.Command{
+		Use:   use,
+		Short: short,
+		Run:   Run,
 	}
 
 	// Define flags
-	s.SetCmd.Flags().String("username", "", "Git username")
-	s.SetCmd.Flags().String("reponame", "", "Repository name")
-	s.SetCmd.Flags().String("remoteUrl", "", "Remote repository URL")
+	SetCmd.Flags().String("username", "", "Git username")
+	SetCmd.Flags().String("reponame", "", "Repository name")
+	SetCmd.Flags().String("remoteUrl", "", "Remote repository URL")
 
-	// Assign run function
-	s.SetCmd.Run = s.Run
-
-	return s
+	return SetCmd
 }
 
-func (s *Set) Run(cmd *cobra.Command, args []string) {
+func Run(cmd *cobra.Command, args []string) {
 	// Read flag values
 	userName, _ := cmd.Flags().GetString("username")
 	repoName, _ := cmd.Flags().GetString("reponame")

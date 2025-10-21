@@ -9,20 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Update struct {
-	UpdateCmd *cobra.Command
-}
-
-func NewUpdateCmd(use, short string) *Update {
-	return &Update{
-		UpdateCmd: &cobra.Command{
-			Use:   use,
-			Short: short,
-		},
+func NewUpdateCmd(use, short string) *cobra.Command {
+	return &cobra.Command{
+		Use:   use,
+		Short: short,
+		Run: Run,
 	}
 }
 
-func (u *Update) Run(cmd *cobra.Command, args []string) {
+func Run(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		fmt.Println("Error: Please provide a new URL.\nUsage: rec update <new-url>")
 		return

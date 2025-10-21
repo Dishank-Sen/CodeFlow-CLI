@@ -5,56 +5,50 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-
 	"github.com/spf13/cobra"
 )
 
-type Init struct{
-	InitCmd *cobra.Command
-}
-
-func NewInitCmd(use string, short string) *Init{
-	var initCmd = &cobra.Command{
+func NewInitCmd(use string, short string) *cobra.Command{
+	return &cobra.Command{
 		Use: use,
 		Short: short,
-	}
-	return &Init{
-		InitCmd: initCmd,
+		RunE: Run,
 	}
 }
 
-func (i *Init) Run(cmd *cobra.Command, args []string){
+func Run(cmd *cobra.Command, args []string) error{
     rootFolder := ".rec"
 
-    folders := i.getFolders(rootFolder)
+    folders := getFolders(rootFolder)
 
-    files := i.getFiles(rootFolder)
+    files := getFiles(rootFolder)
 
-    if  i.folderExist(rootFolder){
+    if  folderExist(rootFolder){
 		absPath, _ := filepath.Abs(rootFolder)
         fmt.Printf("Reinitialized existing rec repo in %s\n", absPath)
-		return
+		return nil
 	}
 
     // Create directories
-    err := i.createDir(folders)
+    err := createDir(folders)
 	if err != nil{
 		log.Fatal(err)
-		return
+		return err
 	}
 
     // Create files
-    err = i.createFiles(files)
+    err = createFiles(files)
 	if err != nil{
 		log.Fatal(err)
-		return
+		return err
 	}
 
     absPath, _ := filepath.Abs(rootFolder)
     fmt.Printf("Initialized empty rec repo in %s\n", absPath)
+	return nil
 }
 
-func (i *Init) getFolders(rootFolder string) []string{
+func getFolders(rootFolder string) []string{
 	return []string{
         filepath.Join(rootFolder, "blob"),
         filepath.Join(rootFolder, "history"),
@@ -64,21 +58,19 @@ func (i *Init) getFolders(rootFolder string) []string{
     }
 }
 
-func (i *Init) getFiles(rootFolder string) []string{
+func getFiles(rootFolder string) []string{
 	return []string{
         filepath.Join(rootFolder, "index", "index.json"),
         filepath.Join(rootFolder, "config.json"),
     }
 }
 
-func (i *Init) folderExist(rootFolder string) bool{
-	if _, err := os.Stat(rootFolder); err == nil {
-        return true
-    }
-	return false
+func folderExist(rootFolder string) bool{
+	_, err := os.Stat(rootFolder)
+	return err == nil
 }
 
-func (i *Init) createDir(folders []string) error{
+func createDir(folders []string) error{
 	for _, folder := range folders {
         if err := os.MkdirAll(folder, 0755); err != nil {
             return fmt.Errorf("error creating folders: %v", err)
@@ -87,7 +79,7 @@ func (i *Init) createDir(folders []string) error{
 	return nil
 }
 
-func (i *Init) createFiles(files []string) error{
+func createFiles(files []string) error{
 	for _, file := range files {
         f, err := os.Create(file)
         if err != nil {

@@ -1,8 +1,0 @@
-{
-  "file": "sample/d1/t2.txt",
-  "type": "snapshot",
-  "action": "write",
-  "blob": ".rec/blob/95/955ddfbf1efade57480fbf6019f3ab768198a04a85e5bae4cf2d1ee04f03e18b",
-  "isBlobType": true,
-  "timestamp": "2025-10-13T12:16:42.092103103+05:30"
-}

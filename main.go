@@ -29,24 +29,21 @@ func RegisterInitCmd(rootCmd *cmd.Root){
 	use := "init"
 	short := "Initialize a new rec repository"
 	initCmd := initCmd.NewInitCmd(use, short)
-	initCmd.InitCmd.Run = initCmd.Run
-	Register(initCmd.InitCmd, rootCmd)
+	Register(initCmd, rootCmd)
 }
 
 func RegisterSetCmd(rootCmd *cmd.Root) {
 	use := "set"
 	short := "Set repository URL"
 	setCommand := setcmd.NewSetCmd(use, short)
-	setCommand.SetCmd.Run = setCommand.Run
-	Register(setCommand.SetCmd, rootCmd)
+	Register(setCommand, rootCmd)
 }
 
 func RegisterUpdateCmd(rootCmd *cmd.Root) {
 	use := "update"
 	short := "Update existing repository URL"
 	updateCommand := updatecmd.NewUpdateCmd(use, short)
-	updateCommand.UpdateCmd.Run = updateCommand.Run
-	Register(updateCommand.UpdateCmd, rootCmd)
+	Register(updateCommand, rootCmd)
 }
 
 func RegisterPushCmd(rootCmd *cmd.Root) {
@@ -61,8 +58,7 @@ func RegisterStartCmd(rootCmd *cmd.Root){
 	use := "start"
 	short := "Starts recording file changes"
 	startCmd := startCmd.NewStartCmd(use, short)
-	startCmd.StartCmd.Run = startCmd.Run
-	Register(startCmd.StartCmd, rootCmd)
+	Register(startCmd, rootCmd)
 }
 
 func main(){
@@ -73,7 +69,7 @@ func main(){
 
 	use := "rec"
 	short := "rec is a simple version control system"
-	long := "rec is a toy version control system built in Go. It mimics some functionality of git for learning purposes."
+	long := "rec is a version control system built in Go. It captures code changes."
 
 	rootCmd := cmd.NewRootCmd(use, short, long)
 	RegisterAllCmd(rootCmd)

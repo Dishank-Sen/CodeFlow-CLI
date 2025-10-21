@@ -15,17 +15,15 @@ type Start struct{
 	StartCmd *cobra.Command
 }
 
-func NewStartCmd(use string, short string) *Start{
-	var startCmd = &cobra.Command{
+func NewStartCmd(use string, short string) *cobra.Command{
+	return &cobra.Command{
 		Use: use,
 		Short: short,
-	}
-	return &Start{
-		StartCmd: startCmd,
+		Run: Run,
 	}
 }
 
-func (s *Start) Run(cmd *cobra.Command, args []string){
+func Run(cmd *cobra.Command, args []string){
    	w := watcher.NewWatcher()
     ev := events.NewEvents(w)
     w.SetEvents(ev)

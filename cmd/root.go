@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"exp1/internal/commands/initCmd"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -15,6 +16,7 @@ func NewRootCmd(use string, short string, long string) *Root{
 		Use: use,
 		Short: short,
 		Long: long,
+		PersistentPreRunE: ensureRecExist,
 	}
 	return &Root{
 		RootCmd: rootCmd,
@@ -32,6 +34,11 @@ func (r *Root) Execute() {
 	}
 }
 
-func (r *Root) init(){
-
+func ensureRecExist(cmd *cobra.Command, args []string) error{
+	if cmd.Name() == "init"{
+		return nil
+	}
+	
+	// run the init command logic
+	return initCmd.Run(cmd, args)
 }

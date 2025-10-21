@@ -17,20 +17,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Push struct {
-	PushCmd *cobra.Command
-}
-
-func NewPushCmd(use, short string) *Push {
-	return &Push{
-		PushCmd: &cobra.Command{
-			Use:   use,
-			Short: short,
-		},
+func NewPushCmd(use, short string) *cobra.Command {
+	return &cobra.Command{
+		Use:   use,
+		Short: short,
+		Run: Run,
 	}
 }
 
-func (p *Push) Run(cmd *cobra.Command, args []string) {
+func Run(cmd *cobra.Command, args []string) {
 	configPath := filepath.Join(".rec", "config.json")
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
@@ -61,7 +56,7 @@ func (p *Push) Run(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("🚀 Pushing repository '%s' by user '%s' to remote: %s\n", repoName, userName, remote)
 
-	if err := p.PushTriggered(remote); err != nil {
+	if err := PushTriggered(remote); err != nil {
 		fmt.Println("❌ Push failed:", err)
 		return
 	}
@@ -71,7 +66,7 @@ func (p *Push) Run(cmd *cobra.Command, args []string) {
 
 
 // PushTriggered zips .rec, and uploads to Express server
-func (p *Push) PushTriggered(remote string) error {
+func PushTriggered(remote string) error {
 	fmt.Println("📦 Collecting project files...")
 
 	// Zip folder to disk
@@ -137,7 +132,7 @@ func (p *Push) PushTriggered(remote string) error {
 }
 
 // CollectProjectFiles copies project files into .rec/files
-func (p *Push) CollectProjectFiles() error {
+func CollectProjectFiles() error {
 	projectRoot, _ := os.Getwd()
 	recDir := filepath.Join(projectRoot, ".rec")
 	filesDir := filepath.Join(recDir, "files")
