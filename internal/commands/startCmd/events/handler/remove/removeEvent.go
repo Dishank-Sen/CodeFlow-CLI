@@ -7,7 +7,6 @@ import (
 	"exp1/internal/types"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -29,14 +28,6 @@ func NewRemove(event fsnotify.Event, watcher interfaces.IWatcher) *Remove{
 
 func (r *Remove) RemoveTriggered(){
 	path := r.Event.Name
-	info, err := os.Stat(path)
-	if err != nil{
-		panic(err)
-	}
-	if info.IsDir(){
-		fmt.Println("folder removed: ",path)
-		return
-	}
 	fmt.Println("file removed: ",path)
 
 	var data = types.FileRecord{
@@ -45,8 +36,8 @@ func (r *Remove) RemoveTriggered(){
 		Timestamp: time.Now(),
 	}
 
-	// add file to .rec/history
-	err = roottimeline.Save(data)
+	// add file to .rec/root-timeline
+	err := roottimeline.Save(data)
 	if err != nil{
 		log.Fatal("removeEvent: ",err)
 	}

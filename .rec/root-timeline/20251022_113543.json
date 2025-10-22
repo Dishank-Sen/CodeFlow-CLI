@@ -1,0 +1,7 @@
+{
+ "file": "sample/d1/p1.txt",
+ "action": "rename",
+ "timestamp": "2025-10-22T11:35:43.818063014+05:30",
+ "oldPath": "sample/d1/p2.txt",
+ "newPath": "sample/d1/p1.txt"
+}

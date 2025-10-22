@@ -11,7 +11,6 @@ type IEvents interface{
 	Remove(event fsnotify.Event)
 	Rename(event fsnotify.Event)
 	Write(event fsnotify.Event)
-	Chmod(event fsnotify.Event)
 }
 
 type IWatcher interface{

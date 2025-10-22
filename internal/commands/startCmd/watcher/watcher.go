@@ -162,14 +162,6 @@ func (w *Watch) eventLoop(){
 				}
 				w.events.Rename(event)
 			}
-			if event.Op&fsnotify.Chmod == fsnotify.Chmod {
-				fmt.Println("chmod event triggered")
-				if w.events == nil{
-					log.Fatal("event is nil")
-					break
-				}
-				w.events.Chmod(event)
-			}
 
 		case err, ok := <-w.watcher.Errors:
 			if !ok {

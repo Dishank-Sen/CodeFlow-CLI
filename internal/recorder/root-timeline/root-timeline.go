@@ -20,6 +20,8 @@ func Save(data types.FileRecord) error{
 		return err
 	}
 
+	fmt.Println("json data:", string(jsonData))
+
 	if err = os.WriteFile(filePath, jsonData, 0644); err != nil{
 		log.Fatal("error (root-timeline.go): ",err)
 		return err

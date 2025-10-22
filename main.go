@@ -50,8 +50,7 @@ func RegisterPushCmd(rootCmd *cmd.Root) {
 	use := "push"
 	short := "Push recorded changes to the remote repository"
 	pushCommand := pushcmd.NewPushCmd(use, short)
-	pushCommand.PushCmd.Run = pushCommand.Run
-	Register(pushCommand.PushCmd, rootCmd)
+	Register(pushCommand, rootCmd)
 }
 
 func RegisterStartCmd(rootCmd *cmd.Root){
