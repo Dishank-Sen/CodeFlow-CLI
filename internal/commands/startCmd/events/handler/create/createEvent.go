@@ -2,7 +2,6 @@ package create
 
 import (
 	"exp1/internal/commands/startCmd/interfaces"
-	"exp1/internal/recorder/history"
 	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
 	"fmt"
@@ -16,14 +15,12 @@ import (
 type Create struct{
 	Event fsnotify.Event
 	Watcher interfaces.IWatcher
-	History *history.History
 }
 
 func NewCreate(event fsnotify.Event, watcher interfaces.IWatcher) *Create{
 	return &Create{
 		Event: event,
 		Watcher: watcher,
-		History: history.NewHistory(),
 	}
 }
 

@@ -2,7 +2,6 @@ package rename
 
 import (
 	"exp1/internal/commands/startCmd/interfaces"
-	"exp1/internal/recorder/history"
 	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
 	"log"
@@ -13,7 +12,6 @@ type Rename struct{
 	OldPath string
 	NewPath string
 	Watcher interfaces.IWatcher
-	History *history.History
 }
 
 func NewRename(oldPath string, newpath string, watcher interfaces.IWatcher) *Rename{
@@ -21,7 +19,6 @@ func NewRename(oldPath string, newpath string, watcher interfaces.IWatcher) *Ren
 		OldPath: oldPath,
 		NewPath: newpath,
 		Watcher: watcher,
-		History: history.NewHistory(),
 	}
 }
 

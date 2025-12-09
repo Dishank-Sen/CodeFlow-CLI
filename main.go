@@ -2,6 +2,7 @@ package main
 
 import (
 	"exp1/cmd"
+	authcmd "exp1/internal/commands/authCmd"
 	"exp1/internal/commands/initCmd"
 	pushcmd "exp1/internal/commands/pushCmd"
 	setcmd "exp1/internal/commands/setCmd"
@@ -23,6 +24,7 @@ func RegisterAllCmd(rootCmd *cmd.Root){
 	RegisterStartCmd(rootCmd)
 	RegisterUpdateCmd(rootCmd)
 	RegisterPushCmd(rootCmd)
+	RegisterAuthCmd(rootCmd)
 }
 
 func RegisterInitCmd(rootCmd *cmd.Root){
@@ -59,6 +61,14 @@ func RegisterStartCmd(rootCmd *cmd.Root){
 	startCmd := startCmd.NewStartCmd(use, short)
 	Register(startCmd, rootCmd)
 }
+
+func RegisterAuthCmd(rootCmd *cmd.Root){
+	use := "auth"
+	short := "authenticates user for remote operations"
+	authCmd := authcmd.NewAuthCmd(use, short)
+	Register(authCmd, rootCmd)
+}
+
 
 func main(){
 	err := godotenv.Load()

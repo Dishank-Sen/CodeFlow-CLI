@@ -2,18 +2,11 @@ package types
 
 import "time"
 
-
-type Change struct {
-	Action string `json:"action"`
-	Name   string `json:"name"`
-}
-
 type FileRecord struct {
 	File      string    `json:"file"`  // file path
 	Type      string    `json:"type,omitempty"`       // e.g. "snapshot", "delta"
 	Action    string    `json:"action"`     // optional: e.g. "create", "write", "delete", "remove",
-	Blob      string    `json:"blob,omitempty"`
-	IsBlobType bool     `json:"isBlobType,omitempty"`
+	Content   string    `json:"content,omitempty"`
 	Timestamp time.Time `json:"timestamp"`
 	OldPath   string    `json:"oldPath,omitempty"`
 	NewPath   string    `json:"newPath,omitempty"`

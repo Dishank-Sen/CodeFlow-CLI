@@ -2,18 +2,14 @@ package pushcmd
 
 import (
 	"archive/zip"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
-	"mime/multipart"
 	"net/http"
-	"net/textproto"
 	"os"
 	"path/filepath"
-	"strings"
-
 	"github.com/spf13/cobra"
 )
 
@@ -51,191 +47,52 @@ func Run(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	userName, _ := config["userName"].(string)
-	repoName, _ := config["repoName"].(string)
+	res, err := PushTriggered(remote)
+	if err != nil {
+		log.Fatal("error occurs (pushCmd):", err)
+	}
+	defer res.Body.Close()
 
-	fmt.Printf("🚀 Pushing repository '%s' by user '%s' to remote: %s\n", repoName, userName, remote)
-
-	if err := PushTriggered(remote); err != nil {
-		fmt.Println("❌ Push failed:", err)
-		return
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal("error reading response:", err)
 	}
 
-	fmt.Println("✅ Push completed successfully!")
+	fmt.Println("response status:", res.Status)
+	fmt.Println("response body:", string(body))
 }
 
+func PushTriggered(remote string) (*http.Response, error){
+	// get pipe reader and writer
+	pr, pw := io.Pipe()
 
-// PushTriggered zips .rec, and uploads to Express server
-func PushTriggered(remote string) error {
-	fmt.Println("📦 Collecting project files...")
+	// get a writer to the pipe
+	zipWriter := zip.NewWriter(pw)
 
-	// Zip folder to disk
-	zipPath := "project.zip"
-	buf, err := zipFolder(".rec")
-	if err != nil {
-		return fmt.Errorf("failed to zip folder: %w", err)
-	}
-
-	if err := os.WriteFile(zipPath, buf.Bytes(), 0644); err != nil {
-		return fmt.Errorf("failed to write zip to disk: %w", err)
-	}
-
-	// Prepare multipart request
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	h := textproto.MIMEHeader{}
-	h.Set("Content-Disposition", `form-data; name="file"; filename="project.zip"`)
-	h.Set("Content-Type", "application/zip")
-	part, err := writer.CreatePart(h)
-	if err != nil {
-		os.Remove(zipPath)
-		return err
-	}
-
-	if _, err := io.Copy(part, buf); err != nil {
-		os.Remove(zipPath)
-		return err
-	}
-	writer.Close()
-
-	// Send request
-	req, err := http.NewRequest("POST", remote, body)
-	if err != nil {
-		os.Remove(zipPath)
-		return err
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		os.Remove(zipPath)
-		return err
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-	fmt.Println("Server response:", string(respBody))
-
-	// Check if response is suitable (customize this condition)
-	if resp.StatusCode != 200 || !bytes.Contains(respBody, []byte("success")) {
-		fmt.Println("⚠️ Response not suitable, removing zip file.")
-		os.Remove(zipPath)
-		return fmt.Errorf("server response unsuitable")
-	}
-
-	// Otherwise, remove zip anyway if you don't need it
-	os.Remove(zipPath)
-
-	return nil
-}
-
-// CollectProjectFiles copies project files into .rec/files
-func CollectProjectFiles() error {
-	projectRoot, _ := os.Getwd()
-	recDir := filepath.Join(projectRoot, ".rec")
-	filesDir := filepath.Join(recDir, "files")
-
-	os.MkdirAll(filesDir, os.ModePerm)
-
-	ignoreFile := filepath.Join(projectRoot, ".recignore")
-	ignorePatterns := []string{}
-	if data, err := os.ReadFile(ignoreFile); err == nil {
-		for _, line := range strings.Split(string(data), "\n") {
-			line = strings.TrimSpace(line)
-			if line != "" {
-				ignorePatterns = append(ignorePatterns, line)
-			}
-		}
-	}
-
-	return filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if path == recDir {
-			return filepath.SkipDir
-		}
-
-		rel, _ := filepath.Rel(projectRoot, path)
-		for _, pattern := range ignorePatterns {
-			match, _ := filepath.Match(pattern, rel)
-			if match || strings.HasPrefix(rel, pattern) {
-				if info.IsDir() {
-					return filepath.SkipDir
-				}
+	go func(){
+		filepath.Walk(".rec/history", func(path string, info fs.FileInfo, err error) error {
+			if info.IsDir(){
 				return nil
 			}
-		}
 
-		if info.IsDir() {
+			f, err := os.Open(path)
+			if err != nil{
+				return err
+			}
+
+			rel, err := filepath.Rel(".rec", path)
+			if err != nil{
+				return err
+			}
+
+			w, err := zipWriter.Create(rel)
+			
+			io.Copy(w, f)
 			return nil
-		}
+		})
+		zipWriter.Close()
+		pw.Close()
+	}()
 
-		dest := filepath.Join(filesDir, rel)
-		os.MkdirAll(filepath.Dir(dest), os.ModePerm)
-		copyFile(path, dest)
-		fmt.Println("Added:", rel)
-		return nil
-	})
-}
-
-func copyFile(src, dst string) error {
-	in, _ := os.Open(src)
-	defer in.Close()
-	out, _ := os.Create(dst)
-	defer out.Close()
-	_, err := io.Copy(out, in)
-	return err
-}
-
-func zipFolder(folderPath string) (*bytes.Buffer, error) {
-	buf := new(bytes.Buffer)
-	zipWriter := zip.NewWriter(buf)
-	defer zipWriter.Close()
-
-	err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		relPath, err := filepath.Rel(folderPath, path)
-		if err != nil {
-			return err
-		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-
-		// close immediately (not deferred)
-		defer file.Close()
-
-		writer, err := zipWriter.Create(relPath)
-		if err != nil {
-			return err
-		}
-
-		_, err = io.Copy(writer, file)
-		return err
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return buf, nil
-}
-
-func RemoveFile(path string){
-	err := os.Remove(path)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return http.Post(remote, "application/zip", pr)
 }

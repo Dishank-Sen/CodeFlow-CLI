@@ -2,8 +2,7 @@ package write
 
 import (
 	"exp1/internal/commands/startCmd/interfaces"
-	"exp1/internal/recorder/blob"
-	"exp1/internal/recorder/history"
+	savehistory "exp1/internal/recorder/saveHistory"
 	"exp1/internal/types"
 	"fmt"
 	"log"
@@ -11,7 +10,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
 	"github.com/fsnotify/fsnotify"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
@@ -20,8 +18,6 @@ type Write struct {
 	Event   fsnotify.Event
 	Watcher interfaces.IWatcher
 	State   map[string]types.FileRecord
-	History *history.History
-	Blob    *blob.Blob
 	Unsaved map[string]bool
 }
 
@@ -29,9 +25,7 @@ func NewWrite(event fsnotify.Event, watcher interfaces.IWatcher, state map[strin
 	return &Write{
 		Event:   event,
 		Watcher: watcher,
-		History: history.NewHistory(),
 		State:   state,
-		Blob:    blob.NewBlob(),
 		Unsaved: unsaved,
 	}
 }
@@ -61,9 +55,6 @@ func (w *Write) WriteTriggered() {
 	if !exists {
 		fmt.Println("🆕 New file detected, creating snapshot record")
 
-		// getting blob path
-		blobPath := w.Blob.CreateBlobFromPath(path)
-
 		data := types.FileRecord{
 			File:                path,
 			Type:                "snapshot",
@@ -80,15 +71,15 @@ func (w *Write) WriteTriggered() {
 			File: path,
 			Type: "snapshot",
 			Action: "write",
-			IsBlobType: true,
-			Blob: blobPath,
+			Content: newContent,
 			Timestamp: time.Now(),
 		}
-		err := w.History.Create(path, historyData)
-
+		
+		err := savehistory.Save(historyData)
 		if err != nil{
-			log.Fatal("writeEvent:",err)
+			log.Fatal("error occured (writeEvent.go):",err)
 		}
+
 		fmt.Println("history created for write snpashot!")
 		
 		w.Unsaved[path] = false
@@ -122,25 +113,22 @@ func (w *Write) WriteTriggered() {
 		dmp := diffmatchpatch.New()
 		patch := dmp.PatchMake(previousContent, currentContent)
 
-		// save patch as blob
 		patchText := dmp.PatchToText(patch)
-		blobPath := w.Blob.CreateBlobFromContent(patchText)
 
 		// save history
 		historyData := types.FileRecord{
 			File: path,
 			Type: "delta",
 			Action: "write",
-			IsBlobType: true,
-			Blob: blobPath,
+			Content: patchText,
 			Timestamp: time.Now(),
 		}
 
-		err = w.History.Create(path, historyData)
-
+		err = savehistory.Save(historyData)
 		if err != nil{
-			log.Fatal("writeEvent:",err)
+			log.Fatal("error occured (writeEvent.go):",err)
 		}
+
 		fmt.Println("history created for write delta!")
 
 		record.CurrentSize = size
@@ -167,18 +155,21 @@ func (w *Write) Flush(){
 	}
 
 	for _, path := range unsavedFiles{
-		blobPath := w.Blob.CreateBlobFromPath(path)
+		content, err := os.ReadFile(path)
+		if err != nil{
+			log.Fatal("error occured (writeEvent.go):", err)
+		}
+
+		stringContent := string(content)
 
 		historyData := types.FileRecord{
 			File: path,
 			Type: "snapshot",
 			Action: "write",
-			IsBlobType: true,
-			Blob: blobPath,
+			Content: stringContent,
 			Timestamp: time.Now(),
 		}
-		err := w.History.Create(path, historyData)
-
+		err = savehistory.Save(historyData)
 		if err != nil{
 			log.Fatal("error while flushing the file (writeEvent.go):",err)
 		}

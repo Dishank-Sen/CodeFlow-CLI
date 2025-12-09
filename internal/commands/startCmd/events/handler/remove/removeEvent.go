@@ -2,7 +2,6 @@ package remove
 
 import (
 	"exp1/internal/commands/startCmd/interfaces"
-	"exp1/internal/recorder/history"
 	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
 	"fmt"
@@ -15,14 +14,12 @@ import (
 type Remove struct{
     Event fsnotify.Event
 	Watcher interfaces.IWatcher
-	History *history.History
 }
 
 func NewRemove(event fsnotify.Event, watcher interfaces.IWatcher) *Remove{
 	return &Remove{
 		Event: event,
 		Watcher: watcher,
-		History: history.NewHistory(),
 	}
 }
 
