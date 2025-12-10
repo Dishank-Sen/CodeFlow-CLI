@@ -7,6 +7,7 @@ require github.com/spf13/cobra v1.10.1
 require (
 	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
 	github.com/kr/binarydist v0.1.0 // indirect
+	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
