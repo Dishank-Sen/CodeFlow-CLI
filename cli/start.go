@@ -44,7 +44,7 @@ func startRunE(cmd *cobra.Command, args []string) error {
 	err := w.Start(ctx)
 
 	// Always attempt to flush unsaved data
-	log.Info(ctx, "flushing unsaved data...")
+	log.Info(parentCtx, "flushing unsaved data...")
 	if flushErr := ev.Flush(); flushErr != nil {
 		return fmt.Errorf("flush failed: %w", flushErr)
 	}
