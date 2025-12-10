@@ -1,5 +1,4 @@
 .rec/
-cmd/
 internal/
 tmp/
 .env
@@ -9,3 +8,6 @@ go.sum
 main.go
 .air.toml
 .git
+pkg/
+utils/
+cli/

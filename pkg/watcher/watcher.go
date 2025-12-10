@@ -70,8 +70,11 @@ func (w *Watch) eventLoop(ctx context.Context) error {
 				return nil
 			}
 
-			// ignore logic: replace with your matchesIgnore implementation
-			if w.matchesIgnore(event.Name, w.getIgnoredFiles()) {
+			patterns, err := w.getIgnoredFiles()
+			if err != nil{
+				return err
+			}
+			if w.matchesIgnore(event.Name, patterns) {
 				continue
 			}
 
@@ -139,21 +142,13 @@ func (w *Watch) safeCallRename(ev fsnotify.Event) error {
 	return nil
 }
 
-// stubbed functions you referenced — implement them in your package
-func (w *Watch) matchesIgnore(name string, ignored []string) bool {
-	// TODO: your ignore logic
-	return false
-}
-func (w *Watch) getIgnoredFiles() []string {
-	// TODO: return ignored patterns
-	return nil
-}
-
-
 // this removes all files mentioned in .recignore
 
 func (w *Watch) filterFiles(root string) error {
-    ignoredPatterns := w.getIgnoredFiles()
+    ignoredPatterns, err := w.getIgnoredFiles()
+	if err != nil{
+		return err
+	}
 
     return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
         if err != nil {
@@ -170,14 +165,14 @@ func (w *Watch) filterFiles(root string) error {
     })
 }
 
-func (w *Watch) getIgnoredFiles() []string{
+func (w *Watch) getIgnoredFiles() ([]string, error){
 	ignoredPatterns, err := w.loadIgnore(filepath.Join("./", ".recignore"))
 	if err != nil && !os.IsNotExist(err) { 
         // ignore error if .recignore not found
-		fmt.Println(err)
-		return nil
+		// fmt.Println(err)
+		return []string{},err
 	}
-	return ignoredPatterns
+	return ignoredPatterns, nil
 }
 
 func (w *Watch) loadIgnore(path string) ([]string, error) {

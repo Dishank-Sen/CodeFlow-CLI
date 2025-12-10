@@ -9,11 +9,11 @@ import (
 
 func CheckDirExist(path string) bool{
 	info, err := os.Stat(path)
-	if info.IsDir(){
-		return true
-	}
 	if err != nil || os.IsNotExist(err){
 		return false
+	}
+	if info.IsDir(){
+		return true
 	}
 	return false
 }

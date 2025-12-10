@@ -25,7 +25,8 @@ func Init() *cobra.Command{
 
 func initRunE(cmd *cobra.Command, args []string) error{
 	ctx, cancel := context.WithCancel(cmd.Context())
-
+	defer cancel()
+	
     rootFolder := ".rec"
 
     folders := getFolders(rootFolder)

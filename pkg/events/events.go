@@ -78,7 +78,20 @@ func (e *Events) Write(event fsnotify.Event) error{
 	path := event.Name
 	var err error
 	// Debounce per file path
-	e.debouncer.Debounce(path, 2*time.Second, func() {
+	debounceTime, err := debounce.GetDebounceTime()
+	if err != nil{
+		return err
+	}
+	if debounceTime == 0{
+		log.Info(e.Ctx, "no debounce time set")
+		debounce.SetDebounceTime(2)
+		debounceTime, err = debounce.GetDebounceTime()
+		if err != nil{
+			return err
+		}
+	}
+
+	e.debouncer.Debounce(path, time.Duration(debounceTime)*time.Second, func() {
 		writeHandler := write.NewWrite(e.Ctx, event, e.watcher, e.State, e.Unsaved)
 		err = writeHandler.Trigger()
 	})

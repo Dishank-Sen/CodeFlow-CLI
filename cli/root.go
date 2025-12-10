@@ -28,12 +28,15 @@ func Root(ctx context.Context) *cobra.Command{
 }
 
 func persistentPreRunE(cmd *cobra.Command, args []string) error{
+	// msg := fmt.Sprintf("cmd name: %s", cmd.Name())
+	// log.Info(cmd.Context(), msg)
 	if cmd.Name() == "init"{
 		return nil
 	}
 	
 	// if .rec is not created prompt user to run init command
 	if !utils.CheckDirExist(".rec"){
+		// log.Info(cmd.Context(), "debug-2")
 		err := "not a rec repository, run 'rec init' to initialize a empty rec repository"
 		return fmt.Errorf(err)
 	}

@@ -28,7 +28,7 @@ func CreateConfig(ctx context.Context, cancel context.CancelFunc) error {
 	}
 
 	recorder := types.Recorder{
-		DebounceTime: 0,	// zero means no value is set
+		DebounceTime: 2,	//  initial default value
 	}
 
     cfg := types.Config{
@@ -41,8 +41,8 @@ func CreateConfig(ctx context.Context, cancel context.CancelFunc) error {
         return fmt.Errorf("failed to marshal config: %w", err)
     }
 
-    // create file with read-only permission for everyone (0444)
-    f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0444)
+    // create file with read and write permission for owner only (0644)
+    f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
     if err != nil {
         return fmt.Errorf("failed to create config file: %w", err)
     }

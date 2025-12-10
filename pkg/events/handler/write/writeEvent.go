@@ -35,8 +35,6 @@ func NewWrite(ctx context.Context, event fsnotify.Event, watcher interfaces.IWat
 
 func (w *Write) Trigger() error{
 	path := w.Event.Name
-	// fmt.Println("file write:", path)
-	// ctx, cancel := context.WithCancel(w.Ctx)
 	ctx := w.Ctx
 
 	info, err := os.Stat(path)
