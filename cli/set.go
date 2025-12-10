@@ -3,14 +3,13 @@ package cli
 import (
 	"context"
 	"encoding/json"
-	initfiles "exp1/cli/initFiles"
 	"exp1/internal/types"
 	"exp1/utils"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
+	cliUtils "exp1/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +44,10 @@ func setRunE(cmd *cobra.Command, args []string) error{
 	// check if config.json exists
 	if !utils.CheckFileExist(configPath){
 		// create a config.json with empty entries
-		initfiles.CreateConfig(ctx, cancel)
+		err := cliUtils.CreateConfig(ctx, cancel)
+		if err != nil{
+			return err
+		}
 	}
 
 	// Load existing config if present

@@ -134,7 +134,7 @@ func (w *Write) Trigger() error{
 			return err
 		}
 
-		// fmt.Println("history created for write delta!")
+		log.Info(ctx, "history created for write delta!")
 
 		record.CurrentSize = size
 		record.PrevSize = size
