@@ -1,8 +1,10 @@
 package cli
 
 import (
-	"exp1/internal/commands/startCmd/events"
-	"exp1/internal/commands/startCmd/watcher"
+	"context"
+	"exp1/pkg/events"
+	"exp1/pkg/watcher"
+	"exp1/utils/log"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,21 +25,33 @@ func Start() *cobra.Command{
 	}
 }
 
-func startRunE(cmd *cobra.Command, args []string) error{
-   	w := watcher.NewWatcher()
-    ev := events.NewEvents(w)
-    w.SetEvents(ev)
+func startRunE(cmd *cobra.Command, args []string) error {
+	// base/root context from cobra
+	parentCtx := cmd.Context()
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+	// make a derived context that cancels on SIGINT/SIGTERM
+	ctx, stop := signal.NotifyContext(parentCtx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-	go func() {
-		<-sigs
-		fmt.Println("\n🛑 Terminating... flushing unsaved deltas.")
-		ev.Flush() // flush unsaved changes
-		os.Exit(0)
-	}()
+	w := watcher.NewWatcher(ctx)
+	if w == nil {
+		return fmt.Errorf("failed to create watcher")
+	}
+	ev := events.NewEvents(w, ctx)
+	w.SetEvents(ev)
 
-    w.Start()
+	// run watcher using the signal-aware ctx (not parentCtx)
+	err := w.Start(ctx)
+
+	// Always attempt to flush unsaved data
+	log.Info(ctx, "flushing unsaved data...")
+	if flushErr := ev.Flush(); flushErr != nil {
+		return fmt.Errorf("flush failed: %w", flushErr)
+	}
+
+	// If Start returned an error other than cancellation, return it
+	if err != nil && err != context.Canceled && err != context.DeadlineExceeded {
+		return err
+	}
 	return nil
 }

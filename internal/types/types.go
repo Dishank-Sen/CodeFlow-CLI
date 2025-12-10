@@ -32,8 +32,16 @@ type LineChange struct {
 	CharDiff   []CharDiff `json:"CharDiff"`   // optional: intra-line diff for replace
 }
 
+type Repository struct{
+	UserName string `json:"username"`
+	RemoteUrl string `json:"remoteUrl"`
+}
+
+type Recorder struct{
+	DebounceTime int64
+}
+
 type Config struct {
-	Repository struct {
-		Remote string `json:"remote"`
-	} `json:"repository"`
+	Repository Repository
+	Recorder Recorder
 }

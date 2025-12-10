@@ -32,3 +32,8 @@ func (d *Debouncer) Debounce(key string, delay time.Duration, fn func()) {
 		fn()
 	})
 }
+
+func GetDebounceTime() int64{
+	// reads the config file for debounce time
+	
+}

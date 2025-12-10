@@ -1,6 +1,8 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+)
 
 type cmdFunc func() *cobra.Command
 var Registered map[string]cmdFunc

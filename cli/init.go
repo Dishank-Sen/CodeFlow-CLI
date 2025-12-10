@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"context"
+	initfiles "exp1/cli/initFiles"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+
 	"github.com/spf13/cobra"
 )
 
@@ -21,11 +24,11 @@ func Init() *cobra.Command{
 }
 
 func initRunE(cmd *cobra.Command, args []string) error{
+	ctx, cancel := context.WithCancel(cmd.Context())
+
     rootFolder := ".rec"
 
     folders := getFolders(rootFolder)
-
-    files := getFiles(rootFolder)
 
     if  folderExist(rootFolder){
 		absPath, _ := filepath.Abs(rootFolder)
@@ -41,9 +44,8 @@ func initRunE(cmd *cobra.Command, args []string) error{
 	}
 
     // Create files
-    err = createFiles(files)
+    err = createFiles(ctx, cancel)
 	if err != nil{
-		log.Fatal(err)
 		return err
 	}
 
@@ -62,13 +64,6 @@ func getFolders(rootFolder string) []string{
     }
 }
 
-func getFiles(rootFolder string) []string{
-	return []string{
-        filepath.Join(rootFolder, "index", "index.json"),
-        filepath.Join(rootFolder, "config.json"),
-    }
-}
-
 func folderExist(rootFolder string) bool{
 	_, err := os.Stat(rootFolder)
 	return err == nil
@@ -83,13 +78,12 @@ func createDir(folders []string) error{
 	return nil
 }
 
-func createFiles(files []string) error{
-	for _, file := range files {
-        f, err := os.Create(file)
-        if err != nil {
-            return fmt.Errorf("error creating file: %v", err)
-        }
-        f.Close()
-    }
+func createFiles(ctx context.Context, cancel context.CancelFunc) error{
+	for _, f := range initfiles.InitFiles{
+		err := f(ctx, cancel)
+		if err != nil{
+			return err
+		}
+	}
 	return nil
 }

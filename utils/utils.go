@@ -1,8 +1,9 @@
 package utils
 
 import (
+	"context"
 	"errors"
-	"fmt"
+	"exp1/utils/log"
 	"os"
 )
 
@@ -22,10 +23,10 @@ func CheckFileExist(path string) bool{
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-func CreateFile(path string){
+func CreateFile(ctx context.Context, cancel context.CancelFunc, path string){
 	f, err := os.Create(path)
-	defer f.Close()
 	if err != nil{
-		Error(err.Error())
+		log.Error(ctx, cancel, err.Error())
 	}
+	f.Close()
 }

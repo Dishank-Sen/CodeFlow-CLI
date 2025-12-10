@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
+	initfiles "exp1/cli/initFiles"
 	"exp1/utils"
 	"fmt"
 	"os"
@@ -30,6 +32,8 @@ func Set() *cobra.Command{
 }
 
 func setRunE(cmd *cobra.Command, args []string) error{
+	parentCtx := cmd.Context()
+	ctx, cancel := 	context.WithCancel(parentCtx)
 	// Read flag values
 	userName, _ := cmd.Flags().GetString("username")
 	remoteUrl, _ := cmd.Flags().GetString("remoteUrl")
@@ -38,8 +42,8 @@ func setRunE(cmd *cobra.Command, args []string) error{
 
 	// check if config.json exists
 	if !utils.CheckFileExist(configPath){
-		// create a empty config.json
-		utils.CreateFile(configPath)
+		// create a config.json with empty entries
+		initfiles.CreateConfig(ctx, cancel)
 	}
 
 	// Load existing config if present
