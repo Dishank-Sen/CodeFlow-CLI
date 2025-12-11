@@ -2,7 +2,6 @@ package roottimeline
 
 import (
 	"encoding/json"
-	"exp1/internal/types"
 	"fmt"
 	"log"
 	"os"
@@ -10,7 +9,7 @@ import (
 	"time"
 )
 
-func Save(data types.FileRecord) error{
+func Save(data any) error{
 	fileName := getFileName()
 	filePath := getFilePath(fileName)
 
@@ -20,10 +19,10 @@ func Save(data types.FileRecord) error{
 		return err
 	}
 
-	fmt.Println("json data:", string(jsonData))
+	// fmt.Println("json data:", string(jsonData))
 
 	if err = os.WriteFile(filePath, jsonData, 0644); err != nil{
-		log.Fatal("error (root-timeline.go): ",err)
+		// log.Fatal("error (root-timeline.go): ",err)
 		return err
 	}
 	

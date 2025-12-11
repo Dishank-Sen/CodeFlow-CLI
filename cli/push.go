@@ -42,7 +42,7 @@ func pushRunE(cmd *cobra.Command, args []string) error{
 		log.Info(parentCtx, "creating default config file.")
 
 		// create a default config file
-		err := utils.CreateConfig(ctx, cancel)
+		err := utils.CreateConfig(ctx, cancel, false)
 		if err != nil{
 			return err
 		}

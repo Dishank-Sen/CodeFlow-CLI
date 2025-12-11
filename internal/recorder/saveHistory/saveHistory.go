@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func Save(data types.FileRecord) error{
+func Save(data types.Write) error{
 	title := data.Timestamp.Format("20060102_150405") + ".json"
 	filePath := filepath.Join(".rec", "history", title)
 

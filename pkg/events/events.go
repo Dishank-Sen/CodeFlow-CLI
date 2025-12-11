@@ -2,13 +2,14 @@ package events
 
 import (
 	"context"
-	"exp1/pkg/events/handler/rename"
-	"exp1/pkg/events/handler/write"
-	"exp1/pkg/interfaces"
+	"exp1/cli/utils"
 	"exp1/internal/debounce"
 	"exp1/internal/types"
 	"exp1/pkg/events/handler/create"
 	"exp1/pkg/events/handler/remove"
+	"exp1/pkg/events/handler/rename"
+	"exp1/pkg/events/handler/write"
+	"exp1/pkg/interfaces"
 	"exp1/utils/log"
 	"fmt"
 	"time"
@@ -19,7 +20,7 @@ import (
 type Events struct{
 	watcher interfaces.IWatcher
 	debouncer *debounce.Debouncer
-	State map[string]types.FileRecord
+	State map[string]types.Write
 	Unsaved map[string]bool
 	RenameFile map[string]time.Time
 	Ctx context.Context
@@ -29,7 +30,7 @@ func NewEvents(w interfaces.IWatcher, ctx context.Context) *Events{
 	return &Events{
 		watcher: w,
 		debouncer: debounce.NewDebouncer(),
-		State: make(map[string]types.FileRecord),
+		State: make(map[string]types.Write),
 		Unsaved: make(map[string]bool),
 		RenameFile: make(map[string]time.Time),
 		Ctx: ctx,
@@ -37,7 +38,12 @@ func NewEvents(w interfaces.IWatcher, ctx context.Context) *Events{
 }
 
 func (e *Events) Create(event fsnotify.Event) error{
-	// fmt.Println("create event:", event)
+	fmt.Println("create event:", event)
+	
+	// add file to file tree
+	if err := utils.AddNode(event.Name); err != nil{
+		return err
+	}
 
 	// Check for recent rename events (within 1 second)
 	for oldPath, t := range e.RenameFile {

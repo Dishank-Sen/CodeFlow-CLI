@@ -2,12 +2,13 @@ package create
 
 import (
 	"context"
-	"exp1/pkg/interfaces"
 	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
+	"exp1/pkg/interfaces"
 	"exp1/utils/log"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -31,6 +32,7 @@ func (c *Create) Trigger() error{
 	ctx := c.Ctx
 
 	path := c.Event.Name
+	name := filepath.Base(path)
 	info, err := os.Stat(path)
 	if err != nil{
 		return err
@@ -39,15 +41,21 @@ func (c *Create) Trigger() error{
 		msg := fmt.Sprintf("folder created: %s", path)
 		log.Info(ctx, msg)
 		// add folder to watcher
-		return c.Watcher.AddDirToWatcher(ctx, path, info)
+		if err := c.Watcher.AddDirToWatcher(ctx, path, info); err != nil{
+			return err
+		}
+	}else{
+		msg := fmt.Sprintf("file created: %s", path)
+		log.Info(ctx, msg)
 	}
-	msg := fmt.Sprintf("file created: %s", path)
-	log.Info(ctx, msg)
 
-	var data = types.FileRecord{
-		File: path,
+	var data = types.Create{
+		Path: path,
+		Name: name,
 		Action: "create",
-		Timestamp: time.Now(),
+		IsDir: info.IsDir(),
+		Size: info.Size(),
+		CreateTime: time.Now(),
 	}
 
 	// add file to .rec/root-timeline

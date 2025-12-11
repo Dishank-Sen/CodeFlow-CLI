@@ -6,7 +6,7 @@ import (
 )
 
 
-type initFilefunc func(ctx context.Context, cancel context.CancelFunc) error
+type initFilefunc func(ctx context.Context, cancel context.CancelFunc, reinit bool) error
 var InitFiles []initFilefunc
 var initFilesMu sync.Mutex
 
