@@ -2,9 +2,11 @@ package rename
 
 import (
 	"context"
-	"exp1/pkg/interfaces"
 	roottimeline "exp1/internal/recorder/root-timeline"
 	"exp1/internal/types"
+	"exp1/pkg/interfaces"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -25,13 +27,22 @@ func NewRename(ctx context.Context, oldPath string, newpath string, watcher inte
 }
 
 func (r *Rename) Trigger() error{
+	newName := filepath.Base(r.NewPath)
+	oldName := filepath.Base(r.OldPath)
+	info, err := os.Stat(r.NewPath)
+	if err != nil{
+		return err
+	}
 
-	var data = types.FileRecord{
-		File: r.NewPath,
-		Action: "rename",
+	var data = types.Rename{
 		NewPath: r.NewPath,
+		NewName: newName,
+		Action: "rename",
 		OldPath: r.OldPath,
-		Timestamp: time.Now(),
+		OldName: oldName,
+		IsDir: info.IsDir(),
+		Size: info.Size(),
+		RenameTime: time.Now(),
 	}
 
 	// add file to .rec/history

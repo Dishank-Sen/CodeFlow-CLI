@@ -23,6 +23,7 @@ type FileRecord struct {
 type Create struct{
 	Path string `json:"path"`
 	Name string `json:"name"`
+	Action string `json:"action"`
 	IsDir bool `json:"isDir"`
 	Size int64 `json:"size"`
 	CreateTime time.Time `json:"createTime"`
@@ -31,13 +32,17 @@ type Create struct{
 type Remove struct{
 	Path string `json:"path"`
 	Name string `json:"name"`
+	Action string `json:"action"`
 	IsDir bool `json:"isDir"`
+	Size int64 `json:"size"`
+	CreateTime time.Time `json:"createTime"`
 	RemoveTime time.Time `json:"removeTime"`
 }
 
 type Rename struct{
-	Path string `json:"path"`
-	Name string `json:"name"`
+	OldPath string `json:"path"`
+	OldName string `json:"name"`
+	Action string `json:"action"`
 	IsDir bool `json:"isDir"`
 	Size int64 `json:"size"`
 	NewPath string `json:"newPath"`

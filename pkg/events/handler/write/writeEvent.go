@@ -18,12 +18,12 @@ import (
 type Write struct {
 	Event   fsnotify.Event
 	Watcher interfaces.IWatcher
-	State   map[string]types.FileRecord
+	State   map[string]types.Write
 	Unsaved map[string]bool
 	Ctx context.Context
 }
 
-func NewWrite(ctx context.Context, event fsnotify.Event, watcher interfaces.IWatcher, state map[string]types.FileRecord, unsaved map[string]bool) *Write {
+func NewWrite(ctx context.Context, event fsnotify.Event, watcher interfaces.IWatcher, state map[string]types.Write, unsaved map[string]bool) *Write {
 	return &Write{
 		Event:   event,
 		Watcher: watcher,
@@ -57,10 +57,9 @@ func (w *Write) Trigger() error{
 	if !exists {
 		log.Info(ctx, "New file detected, creating snapshot record")
 
-		data := types.FileRecord{
-			File:                path,
+		data := types.Write{
+			Path:                path,
 			Type:                "snapshot",
-			Action:              "write",
 			PrevSize:            size,
 			CurrentSize:         size,
 			PreviousFileContent: newContent,
@@ -69,19 +68,17 @@ func (w *Write) Trigger() error{
 		w.State[path] = data
 
 		// save to history
-		historyData := types.FileRecord{
-			File: path,
+		historyData := types.Write{
+			Path: path,
 			Type: "snapshot",
-			Action: "write",
 			Content: newContent,
 			Timestamp: time.Now(),
+			CurrentSize: size,
 		}
 		
-		err := savehistory.Save(historyData)
-		if err != nil{
+		if err := savehistory.Save(historyData); err != nil{
 			return err
 		}
-
 		// fmt.Println("history created for write snpashot!")
 		
 		w.Unsaved[path] = false
@@ -120,12 +117,12 @@ func (w *Write) Trigger() error{
 		patchText := dmp.PatchToText(patch)
 
 		// save history
-		historyData := types.FileRecord{
-			File: path,
+		historyData := types.Write{
+			Path: path,
 			Type: "delta",
-			Action: "write",
 			Content: patchText,
 			Timestamp: time.Now(),
+			CurrentSize: size,
 		}
 
 		err = savehistory.Save(historyData)
@@ -166,18 +163,21 @@ func (w *Write) Flush() error{
 			return err
 		}
 
+		info, err := os.Stat(path)
+		if err != nil{
+			return err
+		}
+		size := info.Size()
 		stringContent := string(content)
 
-		historyData := types.FileRecord{
-			File: path,
+		historyData := types.Write{
+			Path: path,
 			Type: "snapshot",
-			Action: "write",
 			Content: stringContent,
 			Timestamp: time.Now(),
+			CurrentSize: size,
 		}
-		err = savehistory.Save(historyData)
-		if err != nil{
-			// log.Fatal("error while flushing the file (writeEvent.go):",err)
+		if err = savehistory.Save(historyData); err != nil{
 			return err
 		}
 	}

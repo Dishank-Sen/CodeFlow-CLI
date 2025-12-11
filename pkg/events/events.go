@@ -20,7 +20,7 @@ import (
 type Events struct{
 	watcher interfaces.IWatcher
 	debouncer *debounce.Debouncer
-	State map[string]types.FileRecord
+	State map[string]types.Write
 	Unsaved map[string]bool
 	RenameFile map[string]time.Time
 	Ctx context.Context
@@ -30,7 +30,7 @@ func NewEvents(w interfaces.IWatcher, ctx context.Context) *Events{
 	return &Events{
 		watcher: w,
 		debouncer: debounce.NewDebouncer(),
-		State: make(map[string]types.FileRecord),
+		State: make(map[string]types.Write),
 		Unsaved: make(map[string]bool),
 		RenameFile: make(map[string]time.Time),
 		Ctx: ctx,

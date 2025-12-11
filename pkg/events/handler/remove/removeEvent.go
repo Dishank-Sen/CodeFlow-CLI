@@ -37,33 +37,23 @@ func (r *Remove) Trigger() error{
 		return err
 	}
 
-	// isDir := removedNode.IsDir
-	// size  := removedNode.Size
-	// ctime := removedNode.CreateTime
-	// mtime := removedNode.ModTime
-
-	// // Use metadata for root-timeline entry
-	// data := types.FileRecord{
-	// 	File:      removedNode.Path,
-	// 	Action:    "remove",
-	// 	IsDir:     removedNode.IsDir,
-	// 	Size:      removedNode.Size,
-	// 	Timestamp: time.Now(),
-	// }
-
-	// return roottimeline.Save(data)
-	fmt.Println(removedNode)
-
-
+	isDir := removedNode.IsDir
+	size  := removedNode.Size
+	ctime := removedNode.CreateTime
 
 	path := r.Event.Name
+    name := filepath.Base(path)
 	msg := fmt.Sprintf("file removed: %s", path)
 	log.Info(r.Ctx, msg)
 
-	var data = types.FileRecord{
-		File: path,
+	var data = types.Remove{
+		Path: path,
+        Name: name,
 		Action: "remove",
-		Timestamp: time.Now(),
+        IsDir: isDir,
+        Size: size,
+        CreateTime: ctime,
+		RemoveTime: time.Now(),
 	}
 
 	// add file to .rec/root-timeline
