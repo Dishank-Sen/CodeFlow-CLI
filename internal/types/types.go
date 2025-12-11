@@ -2,6 +2,9 @@ package types
 
 import "time"
 
+// ***************important*************
+// I have to handle case of file move
+
 type FileRecord struct {
 	File      string    `json:"file"`  // file path
 	Type      string    `json:"type,omitempty"`       // e.g. "snapshot", "delta"
@@ -17,19 +20,39 @@ type FileRecord struct {
 	PreviousFileContent        string `json:"previousFileContent,omitempty"`
 }
 
-// CharDiff represents character-level changes within a line
-type CharDiff struct {
-	Type string `json:"Type"` // "Equal", "Insert", "Delete"
-	Text string `json:"Text"`
+type Create struct{
+	Path string `json:"path"`
+	Name string `json:"name"`
+	IsDir bool `json:"isDir"`
+	Size int64 `json:"size"`
+	CreateTime time.Time `json:"createTime"`
 }
 
-// LineChange represents line-level changes
-type LineChange struct {
-	FilePath   string     `json:"FilePath"`   // which file this change belongs to
-	LineNumber int        `json:"LineNumber"` // index in the old file
-	Type       string     `json:"Type"`       // "add", "delete", "replace"
-	Content    []string   `json:"Content"`    // content for added/replaced lines
-	CharDiff   []CharDiff `json:"CharDiff"`   // optional: intra-line diff for replace
+type Remove struct{
+	Path string `json:"path"`
+	Name string `json:"name"`
+	IsDir bool `json:"isDir"`
+	RemoveTime time.Time `json:"removeTime"`
+}
+
+type Rename struct{
+	Path string `json:"path"`
+	Name string `json:"name"`
+	IsDir bool `json:"isDir"`
+	Size int64 `json:"size"`
+	NewPath string `json:"newPath"`
+	NewName string `json:"newName"`
+	RenameTime time.Time `json:"createTime"`
+}
+
+type Write struct{
+	Path      string    `json:"path"`  // file path
+	Type      string    `json:"type,omitempty"`       // e.g. "snapshot", "delta"
+	Content   string    `json:"content,omitempty"`
+	Timestamp time.Time `json:"timestamp"`
+	CurrentSize int64  `json:"currentSize,omitempty"`
+	PrevSize    int64  `json:"prevSize,omitempty"`
+	PreviousFileContent string `json:"previousFileContent,omitempty"`
 }
 
 type Repository struct{

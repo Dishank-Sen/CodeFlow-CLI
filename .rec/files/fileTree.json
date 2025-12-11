@@ -1,3 +1,20 @@
 {
-  "files": []
+  "files": [
+    {
+      "name": "sample1",
+      "path": "./sample1",
+      "isDir": true,
+      "createTime": "2025-12-11T22:35:53.095236927+05:30",
+      "modTime": "0001-01-01T00:00:00Z",
+      "children": [
+        {
+          "name": "d1",
+          "path": "sample1/d1",
+          "isDir": true,
+          "createTime": "2025-12-11T22:36:05.39319636+05:30",
+          "modTime": "0001-01-01T00:00:00Z"
+        }
+      ]
+    }
+  ]
 }
