@@ -44,7 +44,7 @@ func setRunE(cmd *cobra.Command, args []string) error{
 	// check if config.json exists
 	if !utils.CheckFileExist(configPath){
 		// create a config.json with empty entries
-		err := cliUtils.CreateConfig(ctx, cancel)
+		err := cliUtils.CreateConfig(ctx, cancel, false)
 		if err != nil{
 			return err
 		}

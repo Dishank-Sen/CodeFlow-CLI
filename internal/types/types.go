@@ -45,3 +45,17 @@ type Config struct {
 	Repository Repository
 	Recorder Recorder
 }
+
+type Node struct {
+    Name     string     `json:"name"`
+    Path     string     `json:"path"`               // absolute or repo-relative
+    IsDir    bool       `json:"isDir"`
+    Size     int64      `json:"size,omitempty"`     // bytes; 0 for dirs
+	CreateTime time.Time `json:"createTime,omitempty"`
+    ModTime  time.Time  `json:"modTime,omitempty"`
+    Children []*Node    `json:"children,omitempty"` // nil when no children -> omitted in JSON
+}
+
+type FileTree struct{
+	Files []*Node `json:"files"`
+}

@@ -2,14 +2,16 @@ package cli
 
 import (
 	"context"
+	"errors"
+	initdir "exp1/cli/initDir"
 	initfiles "exp1/cli/initFiles"
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
+	"exp1/utils"
+	"exp1/utils/log"
 
 	"github.com/spf13/cobra"
 )
+
+var ErrSkipRun = errors.New("cli: skip runE")
 
 func init(){
 	Register("init", Init)
@@ -18,73 +20,84 @@ func init(){
 func Init() *cobra.Command{
 	return &cobra.Command{
 		Use: "init",
-		Short: "nitialize a new rec repository",
+		Short: "initialize a new rec repository",
 		RunE: initRunE,
+		PersistentPreRunE: initPersistentPreRunE,
+		SilenceUsage: true,     // prevents usage on error
+		SilenceErrors: true,    // prevents printing sentinel error
 	}
+}
+
+func initPersistentPreRunE(cmd *cobra.Command, args []string)error{
+	rootDir := ".rec"
+	parentCtx := cmd.Context()
+	ctx, cancel := context.WithCancel(parentCtx)
+	defer cancel()
+
+	if utils.CheckDirExist(rootDir){
+		log.Info(parentCtx, "Reinitializing rec repository")
+		if err := reinitialize(ctx, cancel); err != nil {
+			return err // real error
+		}
+		return ErrSkipRun // signals to skip RunE
+	}
+
+	return nil
 }
 
 func initRunE(cmd *cobra.Command, args []string) error{
 	ctx, cancel := context.WithCancel(cmd.Context())
 	defer cancel()
-	
-    rootFolder := ".rec"
-
-    folders := getFolders(rootFolder)
-
-    if  folderExist(rootFolder){
-		absPath, _ := filepath.Abs(rootFolder)
-        fmt.Printf("Reinitialized existing rec repo in %s\n", absPath)
-		return nil
-	}
 
     // Create directories
-    err := createDir(folders)
+    err := createDir(ctx, cancel, false)
 	if err != nil{
-		log.Fatal(err)
 		return err
 	}
 
     // Create files
-    err = createFiles(ctx, cancel)
+    err = createFiles(ctx, cancel, false)
 	if err != nil{
 		return err
 	}
 
-    absPath, _ := filepath.Abs(rootFolder)
-    fmt.Printf("Initialized empty rec repo in %s\n", absPath)
+	log.Info(ctx, "Initialized empty rec repository")
 	return nil
 }
 
-func getFolders(rootFolder string) []string{
-	return []string{
-        filepath.Join(rootFolder, "blob"),
-        filepath.Join(rootFolder, "history"),
-        filepath.Join(rootFolder, "index"),
-        filepath.Join(rootFolder, "files"),
-		filepath.Join(rootFolder, "root-timeline"),
-    }
-}
-
-func folderExist(rootFolder string) bool{
-	_, err := os.Stat(rootFolder)
-	return err == nil
-}
-
-func createDir(folders []string) error{
-	for _, folder := range folders {
-        if err := os.MkdirAll(folder, 0755); err != nil {
-            return fmt.Errorf("error creating folders: %v", err)
-        }
-    }
-	return nil
-}
-
-func createFiles(ctx context.Context, cancel context.CancelFunc) error{
+func createFiles(ctx context.Context, cancel context.CancelFunc, reinit bool) error{
 	for _, f := range initfiles.InitFiles{
-		err := f(ctx, cancel)
+		err := f(ctx, cancel, reinit)
 		if err != nil{
 			return err
 		}
 	}
+	return nil
+}
+
+func createDir(ctx context.Context, cancel context.CancelFunc, reinit bool) error{
+	for _, f := range initdir.InitDirectories{
+		err := f(ctx, cancel, reinit)
+		if err != nil{
+			return err
+		}
+	}
+	return nil
+}
+
+func reinitialize(ctx context.Context, cancel context.CancelFunc) error{
+    // Create directories
+    err := createDir(ctx, cancel, true)
+	if err != nil{
+		return err
+	}
+
+    // Create files
+    err = createFiles(ctx, cancel, true)
+	if err != nil{
+		return err
+	}
+
+	log.Info(ctx, "Reinitialized rec repository")
 	return nil
 }
