@@ -38,12 +38,7 @@ func NewEvents(w interfaces.IWatcher, ctx context.Context) *Events{
 }
 
 func (e *Events) Create(event fsnotify.Event) error{
-	fmt.Println("create event:", event)
-	
-	// add file to file tree
-	if err := utils.AddNode(event.Name); err != nil{
-		return err
-	}
+	// fmt.Println("create event:", event)
 
 	// Check for recent rename events (within 1 second)
 	for oldPath, t := range e.RenameFile {
@@ -61,6 +56,11 @@ func (e *Events) Create(event fsnotify.Event) error{
 			renameHandler.Trigger()
 			return nil
 		}
+	}
+
+	// add file to file tree
+	if err := utils.AddNode(event.Name); err != nil{
+		return err
 	}
 
 	// Normal create event if no recent rename

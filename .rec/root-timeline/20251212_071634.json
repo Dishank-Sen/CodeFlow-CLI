@@ -1,0 +1,10 @@
+{
+ "path": "sample1",
+ "name": "sample1",
+ "action": "rename",
+ "isDir": true,
+ "size": 0,
+ "newPath": "sample",
+ "newName": "sample",
+ "createTime": "2025-12-12T07:16:34.772020017+05:30"
+}
