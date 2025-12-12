@@ -6,12 +6,14 @@ import (
 	"exp1/internal/debounce"
 	"exp1/internal/types"
 	"exp1/pkg/events/handler/create"
+	"exp1/pkg/events/handler/move"
 	"exp1/pkg/events/handler/remove"
 	"exp1/pkg/events/handler/rename"
 	"exp1/pkg/events/handler/write"
 	"exp1/pkg/interfaces"
 	"exp1/utils/log"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -37,35 +39,58 @@ func NewEvents(w interfaces.IWatcher, ctx context.Context) *Events{
 	}
 }
 
-func (e *Events) Create(event fsnotify.Event) error{
-	// fmt.Println("create event:", event)
+func (e *Events) Create(event fsnotify.Event) error {
+    newPath := filepath.Clean(event.Name)
+    newBase := filepath.Base(newPath)
 
-	// Check for recent rename events (within 1 second)
-	for oldPath, t := range e.RenameFile {
-		if time.Since(t) < 1*time.Second {
-			msg := fmt.Sprintf("Detected rename: %s → %s", oldPath, event.Name)
-			log.Info(e.Ctx, msg)
+    // 1) Check recent rename candidates (within window)
+    // Try to find an oldPath candidate whose basename matches newBase.
+    // Choose the most-recent candidate.
+    var bestOld string
+    var bestT time.Time
+    for oldPath, t := range e.RenameFile {
+        if time.Since(t) >= 1*time.Second {
+            // expired candidate
+            continue
+        }
+        if filepath.Base(filepath.Clean(oldPath)) == newBase {
+            if bestOld == "" || t.After(bestT) {
+                bestOld = filepath.Clean(oldPath)
+                bestT = t
+            }
+        }
+    }
 
-			// Clear entry
-			delete(e.RenameFile, oldPath)
+    if bestOld != "" {
+        // found a likely rename/move candidate
+        log.Info(e.Ctx, fmt.Sprintf("Detected rename/move: %s → %s", bestOld, newPath))
 
-			newPath := event.Name
+        // consume candidate
+        delete(e.RenameFile, bestOld)
 
-			// Call rename handler instead of create
-			renameHandler := rename.NewRename(e.Ctx, oldPath, newPath, e.watcher)
-			renameHandler.Trigger()
-			return nil
-		}
-	}
+        // decide move vs rename: if parent dir changed => move; else rename
+        oldParent := filepath.Clean(filepath.Dir(bestOld))
+        newParent := filepath.Clean(filepath.Dir(newPath))
 
-	// add file to file tree
-	if err := utils.AddNode(event.Name); err != nil{
-		return err
-	}
+        if oldParent != newParent {
+            // it's a move across directories
+            mv := move.NewMove(e.Ctx, bestOld, newPath, e.watcher)
+            return mv.Trigger()
+        } else {
+            // rename within same directory (name changed)
+            rn := rename.NewRename(e.Ctx, bestOld, newPath, e.watcher)
+            return rn.Trigger()
+        }
+    }
 
-	// Normal create event if no recent rename
-	createHandler := create.NewCreate(e.Ctx, event, e.watcher)
-	return createHandler.Trigger()
+    // 2) Not a move/rename -> proceed with normal create
+    // AddNode should be idempotent (skip if exists)
+    if err := utils.AddNode(newPath); err != nil {
+        return err
+    }
+
+    createHandler := create.NewCreate(e.Ctx, event, e.watcher)
+    return createHandler.Trigger()
 }
 
 func (e *Events) Remove(event fsnotify.Event) error{
