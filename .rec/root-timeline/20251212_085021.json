@@ -1,0 +1,10 @@
+{
+ "path": "sample/d2/p1.txt",
+ "name": "p1.txt",
+ "action": "move",
+ "isDir": false,
+ "size": 86,
+ "newPath": "sample/d1/p1.txt",
+ "newName": "p1.txt",
+ "createTime": "2025-12-12T08:50:21.926165529+05:30"
+}

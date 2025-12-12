@@ -20,8 +20,22 @@
               "isDir": false,
               "createTime": "2025-12-11T23:44:00.357789387+05:30",
               "modTime": "0001-01-01T00:00:00Z"
+            },
+            {
+              "name": "p2.txt",
+              "path": "sample/d1/p2.txt",
+              "isDir": false,
+              "createTime": "2025-12-12T08:07:30.881857803+05:30",
+              "modTime": "0001-01-01T00:00:00Z"
             }
           ]
+        },
+        {
+          "name": "d2",
+          "path": "sample/d2",
+          "isDir": true,
+          "createTime": "2025-12-12T08:07:18.278732645+05:30",
+          "modTime": "0001-01-01T00:00:00Z"
         }
       ]
     }

@@ -1,0 +1,10 @@
+{
+ "path": "sample/d2/p2.txt",
+ "name": "p2.txt",
+ "action": "rename",
+ "isDir": false,
+ "size": 0,
+ "newPath": "sample/p2.txt",
+ "newName": "p2.txt",
+ "createTime": "2025-12-12T08:07:40.992248306+05:30"
+}
