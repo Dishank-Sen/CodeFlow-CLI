@@ -5,21 +5,6 @@ import "time"
 // ***************important*************
 // I have to handle case of file move
 
-type FileRecord struct {
-	File      string    `json:"file"`  // file path
-	Type      string    `json:"type,omitempty"`       // e.g. "snapshot", "delta"
-	Action    string    `json:"action"`     // optional: e.g. "create", "write", "delete", "remove",
-	Content   string    `json:"content,omitempty"`
-	Timestamp time.Time `json:"timestamp"`
-	OldPath   string    `json:"oldPath,omitempty"`
-	NewPath   string    `json:"newPath,omitempty"`
-
-	// Optional file state
-	CurrentSize int64  `json:"currentSize,omitempty"`
-	PrevSize    int64  `json:"prevSize,omitempty"`
-	PreviousFileContent        string `json:"previousFileContent,omitempty"`
-}
-
 type Create struct{
 	Path string `json:"path"`
 	Name string `json:"name"`
