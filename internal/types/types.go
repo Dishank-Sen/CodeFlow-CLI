@@ -72,3 +72,8 @@ type Node struct {
 type FileTree struct{
 	Files []*Node `json:"files"`
 }
+
+type Metadata struct{
+	UserName string `json:"userName"`
+	RepoName string `json:"reponame"`
+}
