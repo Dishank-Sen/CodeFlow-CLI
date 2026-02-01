@@ -21,20 +21,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init(){
+func init() {
 	Register("push", Push)
 }
 
-func Push() *cobra.Command{
+func Push() *cobra.Command {
 	return &cobra.Command{
-		Use: "push",
+		Use:   "push",
 		Short: "pushes all the snapshot and deltas to server",
-		RunE: pushRunE,
+		RunE:  pushRunE,
 	}
 }
 
-func pushRunE(cmd *cobra.Command, args []string) error{
-	configPath := filepath.Join(".rec", "config.json")
+func pushRunE(cmd *cobra.Command, args []string) error {
+	configPath := filepath.Join(".codeflow", "config.json")
 	parentCtx := cmd.Context()
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
@@ -45,7 +45,7 @@ func pushRunE(cmd *cobra.Command, args []string) error{
 
 		// create a default config file
 		err := utils.CreateConfig(ctx, cancel, false)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 	}
@@ -59,15 +59,16 @@ func pushRunE(cmd *cobra.Command, args []string) error{
 	if err := json.Unmarshal(data, &config); err != nil {
 		return err
 	}
- 
+
 	remoteUrl := config.Repository.RemoteUrl
 
 	if strings.TrimSpace(remoteUrl) == "" {
-		return fmt.Errorf("no remote url found, run rec set -r <remoteUrl> to set it.")
+		return fmt.Errorf("no remote url found, run codeflowset -r <remoteUrl> to set it.")
 	}
 
 	userName, repoName, err := parseRemoteURL(remoteUrl)
-	if err != nil{
+	fmt.Printf("username: %s and repoName: %s", userName, repoName)
+	if err != nil {
 		return err
 	}
 
@@ -109,17 +110,17 @@ func parseRemoteURL(remoteUrl string) (username string, repoName string, err err
 	// Extract path segments
 	segments := strings.Split(strings.Trim(u.Path, "/"), "/")
 	if len(segments) != 2 {
-		return "", "", errors.New("invalid URL format: expected /<username>/<repo>.rec")
+		return "", "", errors.New("invalid URL format: expected /<username>/<repo>.codeflow")
 	}
 
 	username = segments[0]
 	repo := segments[1]
 
-	if !strings.HasSuffix(repo, ".rec") {
-		return "", "", errors.New("invalid repo name: missing .rec suffix")
+	if !strings.HasSuffix(repo, ".codeflow") {
+		return "", "", errors.New("invalid repo name: missing .codeflowsuffix")
 	}
 
-	repoName = strings.TrimSuffix(repo, ".rec")
+	repoName = strings.TrimSuffix(repo, ".codeflow")
 	if repoName == "" {
 		return "", "", errors.New("empty repo name")
 	}
@@ -127,7 +128,7 @@ func parseRemoteURL(remoteUrl string) (username string, repoName string, err err
 	return username, repoName, nil
 }
 
-func Trigger(userName, repoName, endpointUrl string) (*http.Response, error){
+func Trigger(userName, repoName, endpointUrl string) (*http.Response, error) {
 	pr, pw := io.Pipe()
 	writer := multipart.NewWriter(pw)
 
@@ -144,9 +145,9 @@ func Trigger(userName, repoName, endpointUrl string) (*http.Response, error){
 		metadataBytes, _ := json.Marshal(metadata)
 		metaPart.Write(metadataBytes)
 
-		zipFiles(writer, "history", "history.zip", ".rec/history")
-		zipFiles(writer, "fileTree", "fileTree.zip", ".rec/files")
-		zipFiles(writer, "root-timeline", "root-timeline.zip", ".rec/root-timeline")
+		zipFiles(writer, "history", "history.zip", ".codeflow/history")
+		zipFiles(writer, "fileTree", "fileTree.zip", ".codeflow/files")
+		zipFiles(writer, "root-timeline", "root-timeline.zip", ".codeflow/root-timeline")
 	}()
 
 	req, _ := http.NewRequest("POST", endpointUrl, pr)
@@ -156,7 +157,7 @@ func Trigger(userName, repoName, endpointUrl string) (*http.Response, error){
 	return client.Do(req)
 }
 
-func zipFiles(writer *multipart.Writer, fieldname string, filename string, dirPath string){
+func zipFiles(writer *multipart.Writer, fieldname string, filename string, dirPath string) {
 	zipPart, _ := writer.CreateFormFile(fieldname, filename)
 	zipWriter := zip.NewWriter(zipPart)
 
@@ -168,7 +169,7 @@ func zipFiles(writer *multipart.Writer, fieldname string, filename string, dirPa
 		f, _ := os.Open(path)
 		defer f.Close()
 
-		rel, _ := filepath.Rel(".rec", path)
+		rel, _ := filepath.Rel(".codeflow", path)
 		w, _ := zipWriter.Create(rel)
 		io.Copy(w, f)
 		return nil

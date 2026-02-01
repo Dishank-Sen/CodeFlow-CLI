@@ -1,8 +1,0 @@
-{
- "path": "sample/d2/p2.txt",
- "name": "p2.txt",
- "action": "create",
- "isDir": false,
- "size": 0,
- "createTime": "2025-12-12T08:07:30.882399225+05:30"
-}

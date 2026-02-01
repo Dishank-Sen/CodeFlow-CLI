@@ -1,0 +1,5 @@
+mycli-linux-amd64
+mycli-linux-amd64.sha256
+mycli-linux-arm64
+mycli-linux-arm64.sha256
+build.sh

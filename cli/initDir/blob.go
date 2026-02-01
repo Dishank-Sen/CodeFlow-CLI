@@ -6,11 +6,11 @@ import (
 	"path"
 )
 
-func init(){
+func init() {
 	InitDir(CreateBlob)
 }
 
-func CreateBlob(ctx context.Context, cancel context.CancelFunc, reinit bool) error{
-	dirPath := path.Join(".rec", "blob")
+func CreateBlob(ctx context.Context, cancel context.CancelFunc, reinit bool) error {
+	dirPath := path.Join(".codeflow", "blob")
 	return utils.CreateDir(ctx, cancel, dirPath, reinit)
 }

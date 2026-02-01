@@ -8,18 +8,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Root(ctx context.Context) *cobra.Command{
+func Root(ctx context.Context) *cobra.Command {
 	var rootCmd = &cobra.Command{
-		Use: "rec",
-		Short: "rec is a simple version control system",
-		Long: "rec is a version control system built in Go. It captures code changes.",
+		Use:               "rec",
+		Short:             "codeflowis a simple version control system",
+		Long:              "codeflowis a version control system built in Go. It captures code changes.",
 		PersistentPreRunE: persistentPreRunE,
 	}
 
 	rootCmd.SetContext(ctx)
 
 	// loop which register all the commands
-	for _, cmd := range Registered{
+	for _, cmd := range Registered {
 		c := cmd()
 		rootCmd.AddCommand(c)
 	}
@@ -27,19 +27,19 @@ func Root(ctx context.Context) *cobra.Command{
 	return rootCmd
 }
 
-func persistentPreRunE(cmd *cobra.Command, args []string) error{
+func persistentPreRunE(cmd *cobra.Command, args []string) error {
 	// msg := fmt.Sprintf("cmd name: %s", cmd.Name())
 	// log.Info(cmd.Context(), msg)
-	if cmd.Name() == "init"{
+	if cmd.Name() == "init" {
 		return nil
 	}
-	
-	// if .rec is not created prompt user to run init command
-	if !utils.CheckDirExist(".rec"){
+
+	// if .codeflowis not created prompt user to run init command
+	if !utils.CheckDirExist(".codeflow") {
 		// log.Info(cmd.Context(), "debug-2")
-		err := "not a rec repository, run 'rec init' to initialize a empty rec repository"
+		err := "not a codeflowrepository, run 'codeflowinit' to initialize a empty codeflowrepository"
 		return fmt.Errorf(err)
 	}
-	
+
 	return nil
 }
