@@ -25,13 +25,13 @@ type Remove struct{
 }
 
 type Rename struct{
-	OldPath string `json:"path"`
-	OldName string `json:"name"`
+	OldPath string `json:"oldPath"`
+	OldName string `json:"oldName"`
 	Action string `json:"action"`
 	IsDir bool `json:"isDir"`
 	Size int64 `json:"size"`
-	NewPath string `json:"newPath"`
-	NewName string `json:"newName"`
+	Path string `json:"path"`
+	Name string `json:"name"`
 	RenameTime time.Time `json:"createTime"`
 }
 
@@ -71,4 +71,9 @@ type Node struct {
 
 type FileTree struct{
 	Files []*Node `json:"files"`
+}
+
+type Metadata struct{
+	UserName string `json:"userName"`
+	RepoName string `json:"repoName"`
 }

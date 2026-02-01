@@ -11,7 +11,7 @@ package reconstruct
 // )
 
 // func Reconstruct(path string){
-// 	correctPath := "../../.rec/history" + path
+// 	correctPath := "../../.codeflow/history" + path
 // 	entries, err := os.ReadDir(correctPath)
 // 	if err != nil{
 // 		log.Fatal("error reading the dir (reconstruct.go):",err)
@@ -67,7 +67,7 @@ package reconstruct
 // }
 
 // func ReadFile(name string) []byte{
-// 	path := "../../.rec/history/sample/d1/t2.txt/" + name
+// 	path := "../../.codeflow/history/sample/d1/t2.txt/" + name
 // 	data, err := os.ReadFile(path)
 // 	if err != nil{
 // 		log.Fatal(err)
